@@ -851,7 +851,7 @@ struct FpToFpOpConversion
     bool isDstFP32 = dstElementType.isF32();
     Type srcType = useFP16IntermediateSrc ? f16_ty : srcElementType;
     Type dstType = isDstFP32 ? f16_ty : dstElementType;
-    auto cvtFunc = getConversionFunc(srcType, dstType);
+
     SmallVector<Value> inVals;
     for (unsigned i = 0; i < std::min(numElements, operands.size()); i++) {
       inVals.push_back(operands[i][0]);
@@ -859,6 +859,15 @@ struct FpToFpOpConversion
     if (useFP16IntermediateSrc)
       for (Value &v : inVals)
         v = convertFp32ToFp16NZ(loc, rewriter, v);
+
+    if (srcElementType.isF16() && isDstFP32) {
+      for (Value &v : inVals)
+        v = convertFp16ToFp32(loc, rewriter, v);
+      return inVals;
+    }
+
+    auto cvtFunc = getConversionFunc(srcType, dstType);
+
     inVals.resize(numElements, undef(typeConverter->convertType(srcType)));
     SmallVector<Value> outVals = cvtFunc(loc, rewriter, inVals);
     assert(outVals.size() == inVals.size());
