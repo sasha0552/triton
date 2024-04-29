@@ -48,8 +48,8 @@ std::string translateLLVMIRToPTX(llvm::Module &module, int cc, int version,
                                  bool enable_fp_fusion) {
   // LLVM version in use may not officially support target hardware.
   // Supported versions for LLVM 14 are here:
-  // https://github.com/llvm/llvm-project/blob/f28c006a5895fc0e329fe15fead81e37457cb1d1/clang/include/clang/Basic/BuiltinsNVPTX.def
-  int maxPTX = std::min(82, version);
+  // https://github.com/llvm/llvm-project/blob/5e5a22caf88ac1ccfa8dc5720295fdeba0ad9372/clang/include/clang/Basic/BuiltinsNVPTX.def
+  int maxPTX = std::min(80, version);
   int maxCC = std::min(90, cc);
   // options
   auto options = llvm::cl::getRegisteredOptions();
@@ -65,8 +65,7 @@ std::string translateLLVMIRToPTX(llvm::Module &module, int cc, int version,
   std::string triple = "nvptx64-nvidia-cuda";
   std::string proc = "sm_" + std::to_string(maxCC);
   std::string layout = "";
-  std::string features = "";
-  // std::string features = "+ptx" + std::to_string(maxPTX);
+  std::string features = "+ptx" + std::to_string(maxPTX);
   for (llvm::Function &f : module.functions()) {
     if (!f.hasFnAttribute(llvm::Attribute::NoInline))
       f.addFnAttr(llvm::Attribute::AlwaysInline);
