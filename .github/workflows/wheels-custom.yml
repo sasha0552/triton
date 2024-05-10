@@ -1,0 +1,68 @@
+name: Wheels (Custom)
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        required: true
+
+permissions: read-all
+
+jobs:
+
+  Build-Wheels:
+    timeout-minutes: 360
+
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+
+      # Used to host cibuildwheel
+      - uses: actions/setup-python@v5
+
+      - name: Install cibuildwheel
+        run: python3 -m pip install cibuildwheel==2.17.0
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.inputs.ref }}"
+
+      - name: Patch setup.py
+        run: |
+          echo "" >> python/setup.cfg
+          echo "[build_ext]" >> python/setup.cfg
+          echo "base-dir=/project" >> python/setup.cfg
+
+      - name: Build wheels
+        run: |
+          export LATEST_DATE=$(TZ=UTC0 git show --quiet --date='format-local:%Y%m%d%H%M%S' --format="%cd")
+          # Pass MAX_JOBS=4 because, at time of writing, the VM "only" has 32GB
+          # of RAM and OOMs while building if we give it the default number of
+          # workers (2 * NUM_CPUs).
+          #export CIBW_ENVIRONMENT="MAX_JOBS=4 \
+          export CIBW_ENVIRONMENT="MAX_JOBS=2 \
+                  TRITON_WHEEL_NAME=triton-nightly \
+                  TRITON_WHEEL_VERSION_SUFFIX=-$LATEST_DATE \
+                  TRITON_BUILD_WITH_CLANG_LLD=1"
+          export CIBW_MANYLINUX_X86_64_IMAGE="quay.io/pypa/manylinux_2_28_x86_64:latest"
+          #export CIBW_MANYLINUX_PYPY_X86_64_IMAGE="quay.io/pypa/manylinux_2_28_x86_64:latest"
+          # many_linux_2_28 image comes with GCC 12.2.1, but not clang.
+          # With this install, it gets clang 16.0.6.
+          export CIBW_BEFORE_ALL="dnf install clang lld -y";
+          export CIBW_SKIP="cp{35,36,37}-*"
+          #export CIBW_BUILD="cp3*-manylinux_x86_64"
+          export CIBW_BUILD="cp311-manylinux_x86_64"
+          python3 -m cibuildwheel python --output-dir wheelhouse
+
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "::set-output name=timestamp::$(date '+%Y-%m-%d_%H-%M-%S')"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wheelhouse/*.whl
+          tag_name: ${{ steps.timestamp.outputs.timestamp }}
