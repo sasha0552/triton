@@ -1,0 +1,38 @@
+name: Build wheel
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "timestamp=$(date '+%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.18.0
+        env:
+          CIBW_BEFORE_ALL: yum --assumeyes install clang lld
+          CIBW_BUILD: cp311-manylinux_x86_64
+          CIBW_ENVIRONMENT: "TRITON_BUILD_WITH_CLANG_LLD=1"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wheelhouse/*.whl
+          tag_name: ${{ steps.timestamp.outputs.timestamp }}
+          target_commitish: ${{ github.event.inputs.ref }}
