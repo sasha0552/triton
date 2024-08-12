@@ -106,7 +106,7 @@ function(add_triton_plugin name)
 endfunction()
 
 
-# Disable warnings that show up in external code (gtest;pybind11)
+# Disable warnings that show up in external code (gtest)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-covered-switch-default -fvisibility=hidden")
 
 include_directories(".")
@@ -145,14 +145,10 @@ if(TRITON_BUILD_PYTHON_MODULE)
     # We have PYTHON_INCLUDE_DIRS set--this is what we expect when building
     # using pip install.
     include_directories(${PYTHON_INCLUDE_DIRS})
-    include_directories(${PYBIND11_INCLUDE_DIR})
   else()
     # Otherwise, we might be building from top CMakeLists.txt directly.
-    # Try to find Python and pybind11 packages.
     find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
-    find_package(pybind11 CONFIG REQUIRED HINTS "${Python3_SITELIB}")
     include_directories(${Python3_INCLUDE_DIRS})
-    include_directories(${pybind11_INCLUDE_DIR})
     link_directories(${Python3_LIBRARY_DIRS})
     link_libraries(${Python3_LIBRARIES})
     add_link_options(${Python3_LINK_OPTIONS})

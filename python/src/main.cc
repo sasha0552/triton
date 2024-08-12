@@ -2,8 +2,6 @@
 #include "llvm/Support/Signals.h"
 #include <pybind11/pybind11.h>
 
-namespace py = pybind11;
-
 #define FOR_EACH_1(MACRO, X) MACRO(X)
 #define FOR_EACH_2(MACRO, X, ...) MACRO(X) FOR_EACH_1(MACRO, __VA_ARGS__)
 #define FOR_EACH_3(MACRO, X, ...) MACRO(X) FOR_EACH_2(MACRO, __VA_ARGS__)

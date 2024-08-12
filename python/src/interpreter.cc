@@ -5,8 +5,6 @@
 #include <pybind11/pybind11.h>
 #include <type_traits>
 
-namespace py = pybind11;
-
 namespace {
 
 enum class MemSemantic { ACQUIRE_RELEASE, ACQUIRE, RELEASE, RELAXED };
@@ -304,17 +302,17 @@ makeAtomicRMWOp(pybind11::dtype dtype, const uint64_t *ptr, const void *val,
 
 } // namespace
 
-void init_triton_interpreter(py::module &&m) {
-  using ret = py::return_value_policy;
+void init_triton_interpreter(pybind11::module &&m) {
+  using ret = pybind11::return_value_policy;
 
-  py::enum_<MemSemantic>(m, "MEM_SEMANTIC", py::module_local())
+  pybind11::enum_<MemSemantic>(m, "MEM_SEMANTIC", pybind11::module_local())
       .value("ACQUIRE_RELEASE", MemSemantic::ACQUIRE_RELEASE)
       .value("ACQUIRE", MemSemantic::ACQUIRE)
       .value("RELEASE", MemSemantic::RELEASE)
       .value("RELAXED", MemSemantic::RELAXED)
       .export_values();
 
-  py::enum_<RMWOp>(m, "RMW_OP", py::module_local())
+  pybind11::enum_<RMWOp>(m, "RMW_OP", pybind11::module_local())
       .value("ADD", RMWOp::ADD)
       .value("FADD", RMWOp::FADD)
       .value("AND", RMWOp::AND)
@@ -328,15 +326,15 @@ void init_triton_interpreter(py::module &&m) {
       .export_values();
 
   m.def("load",
-        [](py::array_t<uint64_t> ptr, py::array_t<bool> mask, py::array other,
-           py::dtype ret_dtype) -> py::array {
+        [](pybind11::array_t<uint64_t> ptr, pybind11::array_t<bool> mask, pybind11::array other,
+           pybind11::dtype ret_dtype) -> pybind11::array {
           int numel = ptr.size();
           auto shape =
               std::vector<ptrdiff_t>(ptr.shape(), ptr.shape() + ptr.ndim());
-          py::array ret(ret_dtype, py::array::ShapeContainer{numel});
-          py::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
-          py::array_t<bool> reshaped_mask = mask.reshape({numel});
-          py::array reshaped_others = other.reshape({numel});
+          pybind11::array ret(ret_dtype, pybind11::array::ShapeContainer{numel});
+          pybind11::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
+          pybind11::array_t<bool> reshaped_mask = mask.reshape({numel});
+          pybind11::array reshaped_others = other.reshape({numel});
           for (size_t i = 0; i < ptr.size(); ++i) {
             if (reshaped_mask.at(i))
               memcpy(ret.mutable_data(i),
@@ -350,11 +348,11 @@ void init_triton_interpreter(py::module &&m) {
         });
 
   m.def("store",
-        [](py::array_t<uint64_t> ptr, py::array value, py::array_t<bool> mask) {
+        [](pybind11::array_t<uint64_t> ptr, pybind11::array value, pybind11::array_t<bool> mask) {
           int numel = ptr.size();
-          py::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
-          py::array_t<int8_t> reshaped_mask = mask.reshape({numel});
-          py::array reshaped_value = value.reshape({numel});
+          pybind11::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
+          pybind11::array_t<int8_t> reshaped_mask = mask.reshape({numel});
+          pybind11::array reshaped_value = value.reshape({numel});
           for (size_t i = 0; i < ptr.size(); ++i) {
             if (reshaped_mask.at(i)) {
               memcpy(reinterpret_cast<void *>(reshaped_ptr.mutable_at(i)),
@@ -364,17 +362,17 @@ void init_triton_interpreter(py::module &&m) {
         });
 
   m.def("atomic_rmw",
-        [](RMWOp rmw_op, py::array_t<uint64_t> ptr, py::array val,
-           py::array_t<bool> mask, MemSemantic sem) -> py::array {
+        [](RMWOp rmw_op, pybind11::array_t<uint64_t> ptr, pybind11::array val,
+           pybind11::array_t<bool> mask, MemSemantic sem) -> pybind11::array {
           int order = mem_semantic_map[sem];
           int numel = ptr.size();
           auto shape =
               std::vector<ptrdiff_t>(ptr.shape(), ptr.shape() + ptr.ndim());
           auto ret_dtype = val.dtype();
-          py::array ret(ret_dtype, py::array::ShapeContainer{numel});
-          py::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
-          py::array_t<bool> reshaped_mask = mask.reshape({numel});
-          py::array reshaped_val = val.reshape({numel});
+          pybind11::array ret(ret_dtype, pybind11::array::ShapeContainer{numel});
+          pybind11::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
+          pybind11::array_t<bool> reshaped_mask = mask.reshape({numel});
+          pybind11::array reshaped_val = val.reshape({numel});
           auto *ptr_data = reshaped_ptr.data();
           auto *mask_data = reshaped_mask.data();
           auto *val_data = static_cast<const void *>(reshaped_val.data());
@@ -411,17 +409,17 @@ void init_triton_interpreter(py::module &&m) {
         });
 
   m.def("atomic_cas",
-        [](py::array_t<uint64_t> ptr, py::array &cmp, py::array &val,
-           MemSemantic sem) -> py::array {
+        [](pybind11::array_t<uint64_t> ptr, pybind11::array &cmp, pybind11::array &val,
+           MemSemantic sem) -> pybind11::array {
           int order = mem_semantic_map[sem];
           int numel = ptr.size();
           auto shape =
               std::vector<ptrdiff_t>(ptr.shape(), ptr.shape() + ptr.ndim());
           auto ret_dtype = cmp.dtype();
-          py::array ret(ret_dtype, py::array::ShapeContainer{numel});
-          py::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
-          py::array reshaped_cmp = cmp.reshape({numel});
-          py::array reshaped_val = val.reshape({numel});
+          pybind11::array ret(ret_dtype, pybind11::array::ShapeContainer{numel});
+          pybind11::array_t<uint64_t> reshaped_ptr = ptr.reshape({numel});
+          pybind11::array reshaped_cmp = cmp.reshape({numel});
+          pybind11::array reshaped_val = val.reshape({numel});
           auto itemsize = cmp.itemsize();
           memcpy(static_cast<void *>(ret.mutable_data()),
                  static_cast<const void *>(reshaped_cmp.data()),

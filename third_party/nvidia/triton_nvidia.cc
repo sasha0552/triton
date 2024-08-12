@@ -12,9 +12,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
-namespace py = pybind11;
-
-void init_triton_nvidia_passes_ttgpuir(py::module &&m) {
+void init_triton_nvidia_passes_ttgpuir(pybind11::module &&m) {
   using namespace mlir::triton;
   // TODO: it is weird to pass mlir::triton::NVVM here since the conversion is
   // nvidia-specificontext
@@ -26,7 +24,7 @@ void init_triton_nvidia_passes_ttgpuir(py::module &&m) {
   });
 }
 
-void init_triton_nvidia_passes_ttnvgpuir(py::module &&m) {
+void init_triton_nvidia_passes_ttnvgpuir(pybind11::module &&m) {
   ADD_PASS_WRAPPER_1("add_plan_cta", mlir::createTritonNvidiaGPUPlanCTAPass,
                      mlir::triton::nvidia_gpu::ClusterInfo *);
   ADD_PASS_WRAPPER_0("add_fence_insertion",
@@ -37,14 +35,14 @@ void init_triton_nvidia_passes_ttnvgpuir(py::module &&m) {
                      mlir::triton::createConvertNVGPUToLLVMPass);
 }
 
-void init_triton_nvidia(py::module &&m) {
+void init_triton_nvidia(pybind11::module &&m) {
   auto passes = m.def_submodule("passes");
   init_triton_nvidia_passes_ttgpuir(passes.def_submodule("ttgpuir"));
   init_triton_nvidia_passes_ttnvgpuir(passes.def_submodule("ttnvgpuir"));
 
   // cluster info
-  py::class_<mlir::triton::nvidia_gpu::ClusterInfo>(m, "ClusterInfo")
-      .def(py::init<>())
+  pybind11::class_<mlir::triton::nvidia_gpu::ClusterInfo>(m, "ClusterInfo")
+      .def(pybind11::init<>())
       .def_readwrite("clusterDimX",
                      &mlir::triton::nvidia_gpu::ClusterInfo::clusterDimX)
       .def_readwrite("clusterDimY",
@@ -87,15 +85,15 @@ void init_triton_nvidia(py::module &&m) {
   // cublas
   auto cublas = m.def_submodule("cublas");
 
-  py::class_<CublasLtInstance>(cublas, "CublasLt")
-      .def(py::init<>([&](py::object &workspace) {
+  pybind11::class_<CublasLtInstance>(cublas, "CublasLt")
+      .def(pybind11::init<>([&](pybind11::object &workspace) {
         auto wrk_ptr = workspace.attr("data_ptr")().cast<uint64_t>();
         auto wrk_size = workspace.attr("numel")().cast<size_t>() *
                         workspace.attr("element_size")().cast<size_t>();
         return new CublasLtInstance(wrk_ptr, wrk_size);
       }))
-      .def("matmul", [](CublasLtInstance &self, py::object &A, py::object &B,
-                        py::object &C) {
+      .def("matmul", [](CublasLtInstance &self, pybind11::object &A, pybind11::object &B,
+                        pybind11::object &C) {
         auto A_ptr = A.attr("data_ptr")().cast<uint64_t>();
         auto B_ptr = B.attr("data_ptr")().cast<uint64_t>();
         auto C_ptr = C.attr("data_ptr")().cast<uint64_t>();

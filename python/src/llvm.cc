@@ -28,8 +28,6 @@
 #include <pybind11/stl.h>
 #include <stdexcept>
 
-namespace py = pybind11;
-
 namespace llvm {
 struct BreakStructPhiNodesPass : PassInfoMixin<BreakStructPhiNodesPass> {
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
@@ -146,28 +144,28 @@ std::string translateLLVMIRToASM(llvm::Module &module,
   return result;
 }
 
-using ret = py::return_value_policy;
+using ret = pybind11::return_value_policy;
 
-void init_triton_llvm(py::module &&m) {
+void init_triton_llvm(pybind11::module &&m) {
 
-  py::class_<llvm::LLVMContext>(m, "context", py::module_local())
-      .def(py::init<>());
-  py::class_<llvm::SourceMgr>(m, "source_mgr", py::module_local())
-      .def(py::init<>());
+  pybind11::class_<llvm::LLVMContext>(m, "context", pybind11::module_local())
+      .def(pybind11::init<>());
+  pybind11::class_<llvm::SourceMgr>(m, "source_mgr", pybind11::module_local())
+      .def(pybind11::init<>());
 
-  py::class_<llvm::Module::FunctionListType>(m, "function_list")
+  pybind11::class_<llvm::Module::FunctionListType>(m, "function_list")
       .def(
           "__iter__",
           [](llvm::Module::FunctionListType &s) {
-            return py::make_iterator(s.begin(), s.end());
+            return pybind11::make_iterator(s.begin(), s.end());
           },
-          py::keep_alive<0, 1>());
+          pybind11::keep_alive<0, 1>());
 
   // Module Flag behavior. See
   // https://llvm.org/doxygen/classllvm_1_1Module.html#a0a5c55e12c97b80021330fe82b642293
   // for details.
-  py::class_<llvm::Module::ModFlagBehavior>(m, "module_flag_behavior",
-                                            py::module_local());
+  pybind11::class_<llvm::Module::ModFlagBehavior>(m, "module_flag_behavior",
+                                            pybind11::module_local());
   m.attr("MODULE_FLAG_BEHAVIOR_ERROR") = llvm::Module::Error;
   m.attr("MODULE_FLAG_BEHAVIOR_WARNING") = llvm::Module::Warning;
   m.attr("MODULE_FLAG_BEHAVIOR_REQUIRE") = llvm::Module::Require;
@@ -177,7 +175,7 @@ void init_triton_llvm(py::module &&m) {
   m.attr("MODULE_FLAG_BEHAVIOR_MAX") = llvm::Module::Max;
   m.attr("MODULE_FLAG_BEHAVIOR_MIN") = llvm::Module::Min;
 
-  py::class_<llvm::Module>(m, "module", py::module_local())
+  pybind11::class_<llvm::Module>(m, "module", pybind11::module_local())
       .def(
           "__str__",
           [](llvm::Module *self) {
@@ -202,7 +200,7 @@ void init_triton_llvm(py::module &&m) {
              return mod->addModuleFlag(behavior, key, value);
            });
 
-  py::class_<llvm::Function>(m, "function", py::module_local())
+  pybind11::class_<llvm::Function>(m, "function", pybind11::module_local())
       .def_property_readonly(
           "name", [](llvm::Function *fn) { return fn->getName().str(); })
       .def("set_calling_conv", &llvm::Function::setCallingConv)
@@ -232,8 +230,8 @@ void init_triton_llvm(py::module &&m) {
       });
 
   // optimization levels
-  py::class_<llvm::OptimizationLevel>(m, "optimization_level",
-                                      py::module_local());
+  pybind11::class_<llvm::OptimizationLevel>(m, "optimization_level",
+                                      pybind11::module_local());
   m.attr("OPTIMIZE_O0") = llvm::OptimizationLevel::O0;
   m.attr("OPTIMIZE_O1") = llvm::OptimizationLevel::O1;
   m.attr("OPTIMIZE_O2") = llvm::OptimizationLevel::O2;
@@ -246,7 +244,7 @@ void init_triton_llvm(py::module &&m) {
       [](mlir::ModuleOp &mod, llvm::LLVMContext &ctx) {
         return mlir::translateModuleToLLVMIR(mod, ctx);
       },
-      py::keep_alive<0, 2>());
+      pybind11::keep_alive<0, 2>());
 
   m.def("attach_datalayout", [](llvm::Module *mod, const std::string triple,
                                 const std::string proc,
@@ -358,11 +356,11 @@ void init_triton_llvm(py::module &&m) {
       "translate_to_asm",
       [](std::string llvmIR, std::string triple, std::string proc,
          std::string features, std::vector<std::string> flags,
-         bool enable_fp_fusion, bool isObject) -> py::object {
+         bool enable_fp_fusion, bool isObject) -> pybind11::object {
         std::string obj;
         {
           // when allow_threads goes out of scope, gil will be released
-          py::gil_scoped_release allow_threads;
+          pybind11::gil_scoped_release allow_threads;
           // create LLVM module from C++
           llvm::LLVMContext context;
           std::unique_ptr<llvm::MemoryBuffer> buffer =
@@ -379,9 +377,9 @@ void init_triton_llvm(py::module &&m) {
                                      enable_fp_fusion, isObject);
         }
         if (isObject)
-          return py::bytes(obj);
+          return pybind11::bytes(obj);
         else
-          return py::str(obj);
+          return pybind11::str(obj);
       },
       ret::take_ownership);
 

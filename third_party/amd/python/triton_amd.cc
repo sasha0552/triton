@@ -29,12 +29,10 @@
 #include <pybind11/pybind11.h>
 #include <stdexcept>
 
-namespace py = pybind11;
-
 namespace {
 const char *const amdTargetTriple = "amdgcn-amd-amdhsa";
 
-void init_triton_amd_passes_ttgpuir(py::module &&m) {
+void init_triton_amd_passes_ttgpuir(pybind11::module &&m) {
   using namespace mlir::triton;
   m.def("add_to_llvmir",
         [](mlir::PassManager &pm, const std::string &arch, bool ftz) {
@@ -82,7 +80,7 @@ void addControlConstant(llvm::Module *module, const char *name,
 }
 } // namespace
 
-void init_triton_amd(py::module &&m) {
+void init_triton_amd(pybind11::module &&m) {
   m.doc() = "Python bindings to the AMD Triton backend";
 
   auto passes = m.def_submodule("passes");
@@ -209,9 +207,9 @@ void init_triton_amd(py::module &&m) {
         parser->setTargetParser(*tap);
         parser->Run(/*NoInitialTextSection=*/false);
 
-        return py::bytes(std::string(result.begin(), result.end()));
+        return pybind11::bytes(std::string(result.begin(), result.end()));
       },
-      py::return_value_policy::take_ownership);
+      pybind11::return_value_policy::take_ownership);
 
   m.def("need_extern_lib", [](llvm::Module *module, const std::string &lib) {
     for (llvm::Function &f : module->functions()) {

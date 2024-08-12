@@ -32,7 +32,6 @@
 
 namespace {
 
-namespace py = pybind11;
 using namespace mlir;
 using namespace triton;
 
@@ -140,16 +139,16 @@ void outputWarning(Location loc, const std::string &msg) {
 /* Python bindings for ir                                                    */
 /*****************************************************************************/
 
-void init_triton_ir(py::module &&m) {
-  using ret = py::return_value_policy;
+void init_triton_ir(pybind11::module &&m) {
+  using ret = pybind11::return_value_policy;
   using namespace pybind11::literals;
 
-  py::enum_<PaddingOption>(m, "PADDING_OPTION", py::module_local())
+  pybind11::enum_<PaddingOption>(m, "PADDING_OPTION", pybind11::module_local())
       .value("PAD_ZERO", PaddingOption::PAD_ZERO)
       .value("PAD_NAN", PaddingOption::PAD_NAN)
       .export_values();
 
-  py::enum_<CacheModifier>(m, "CACHE_MODIFIER", py::module_local())
+  pybind11::enum_<CacheModifier>(m, "CACHE_MODIFIER", pybind11::module_local())
       .value("NONE", CacheModifier::NONE)
       .value("CA", CacheModifier::CA)
       .value("CG", CacheModifier::CG)
@@ -158,26 +157,26 @@ void init_triton_ir(py::module &&m) {
       .value("WT", CacheModifier::WT)
       .export_values();
 
-  py::enum_<MemSemantic>(m, "MEM_SEMANTIC", py::module_local())
+  pybind11::enum_<MemSemantic>(m, "MEM_SEMANTIC", pybind11::module_local())
       .value("ACQUIRE_RELEASE", MemSemantic::ACQUIRE_RELEASE)
       .value("ACQUIRE", MemSemantic::ACQUIRE)
       .value("RELEASE", MemSemantic::RELEASE)
       .value("RELAXED", MemSemantic::RELAXED)
       .export_values();
 
-  py::enum_<MemSyncScope>(m, "MEM_SYNC_SCOPE", py::module_local())
+  pybind11::enum_<MemSyncScope>(m, "MEM_SYNC_SCOPE", pybind11::module_local())
       .value("GPU", MemSyncScope::GPU)
       .value("CTA", MemSyncScope::CTA)
       .value("SYSTEM", MemSyncScope::SYSTEM)
       .export_values();
 
-  py::enum_<EvictionPolicy>(m, "EVICTION_POLICY", py::module_local())
+  pybind11::enum_<EvictionPolicy>(m, "EVICTION_POLICY", pybind11::module_local())
       .value("NORMAL", EvictionPolicy::NORMAL)
       .value("EVICT_FIRST", EvictionPolicy::EVICT_FIRST)
       .value("EVICT_LAST", EvictionPolicy::EVICT_LAST)
       .export_values();
 
-  py::enum_<RMWOp>(m, "ATOMIC_OP", py::module_local())
+  pybind11::enum_<RMWOp>(m, "ATOMIC_OP", pybind11::module_local())
       .value("ADD", RMWOp::ADD)
       .value("FADD", RMWOp::FADD)
       .value("AND", RMWOp::AND)
@@ -189,22 +188,22 @@ void init_triton_ir(py::module &&m) {
       .value("UMIN", RMWOp::UMIN)
       .value("UMAX", RMWOp::UMAX);
 
-  py::enum_<RoundingMode>(m, "ROUNDING_MODE", py::module_local())
+  pybind11::enum_<RoundingMode>(m, "ROUNDING_MODE", pybind11::module_local())
       .value("RTZ", RoundingMode::RTZ)
       .value("RTNE", RoundingMode::RTNE);
 
-  py::enum_<PropagateNan>(m, "PROPAGATE_NAN", py::module_local())
+  pybind11::enum_<PropagateNan>(m, "PROPAGATE_NAN", pybind11::module_local())
       .value("NONE", PropagateNan::NONE)
       .value("ALL", PropagateNan::ALL);
 
-  py::enum_<InputPrecision>(m, "INPUT_PRECISION", py::module_local())
+  pybind11::enum_<InputPrecision>(m, "INPUT_PRECISION", pybind11::module_local())
       .value("TF32", InputPrecision::TF32)
       .value("TF32x3", InputPrecision::TF32x3)
       .value("IEEE", InputPrecision::IEEE)
       .export_values();
 
-  py::class_<MLIRContext>(m, "context", py::module_local())
-      .def(py::init<>())
+  pybind11::class_<MLIRContext>(m, "context", pybind11::module_local())
+      .def(pybind11::init<>())
       .def("printOpOnDiagnostic",
            [](MLIRContext &self, bool v) { self.printOpOnDiagnostic(v); })
       .def("printStackTraceOnDiagnostic",
@@ -214,9 +213,9 @@ void init_triton_ir(py::module &&m) {
       .def("disable_multithreading",
            [](MLIRContext &self) { self.disableMultithreading(); });
 
-  py::class_<SourceMgrDiagnosticHandler>(m, "source_mgr_diag",
-                                         py::module_local())
-      .def(py::init<llvm::SourceMgr &, MLIRContext *>());
+  pybind11::class_<SourceMgrDiagnosticHandler>(m, "source_mgr_diag",
+                                         pybind11::module_local())
+      .def(pybind11::init<llvm::SourceMgr &, MLIRContext *>());
 
   m.def("load_dialects", [](MLIRContext &context) {
     DialectRegistry registry;
@@ -230,7 +229,7 @@ void init_triton_ir(py::module &&m) {
     context.loadAllAvailableDialects();
   });
 
-  py::class_<Type>(m, "type", py::module_local())
+  pybind11::class_<Type>(m, "type", pybind11::module_local())
       .def("is_integer",
            [](Type &self, unsigned width) { return self.isInteger(width); })
       .def("is_fp16", &Type::isF16)
@@ -241,13 +240,13 @@ void init_triton_ir(py::module &&m) {
         return os.str();
       });
 
-  py::class_<FunctionType>(m, "function_type", py::module_local())
+  pybind11::class_<FunctionType>(m, "function_type", pybind11::module_local())
       .def("param_types", [](FunctionType &self) {
         return std::vector<Type>(self.getInputs().begin(),
                                  self.getInputs().end());
       });
 
-  py::class_<Location>(m, "location", py::module_local())
+  pybind11::class_<Location>(m, "location", pybind11::module_local())
       .def("__str__", [](Location &self) {
         std::string str;
         llvm::raw_string_ostream os(str);
@@ -255,7 +254,7 @@ void init_triton_ir(py::module &&m) {
         return os.str();
       });
 
-  py::class_<Value>(m, "value", py::module_local())
+  pybind11::class_<Value>(m, "value", pybind11::module_local())
       .def("set_attr",
            [](Value &self, std::string &name, Attribute &attr) -> void {
              if (Operation *definingOp = self.getDefiningOp())
@@ -283,17 +282,17 @@ void init_triton_ir(py::module &&m) {
         return (uint64_t)self.getImpl();
       });
 
-  py::class_<OpResult, Value>(m, "op_result", py::module_local());
+  pybind11::class_<OpResult, Value>(m, "op_result", pybind11::module_local());
 
-  py::class_<BlockArgument, Value>(m, "block_argument", py::module_local());
+  pybind11::class_<BlockArgument, Value>(m, "block_argument", pybind11::module_local());
 
-  py::class_<Region>(m, "region", py::module_local())
+  pybind11::class_<Region>(m, "region", pybind11::module_local())
       .def("get_parent_region", &Region::getParentRegion, ret::reference)
       .def("size", [](Region &self) { return self.getBlocks().size(); })
       .def("empty", &Region::empty)
       .def("id", [](Region &self) { return (uint64_t)&self; });
 
-  py::class_<Block>(m, "block", py::module_local())
+  pybind11::class_<Block>(m, "block", pybind11::module_local())
       .def("arg",
            [](Block &self, int index) -> BlockArgument {
              if (index >= self.getNumArguments())
@@ -357,12 +356,12 @@ void init_triton_ir(py::module &&m) {
       .def("erase", [](Block &self) { self.erase(); })
       .def("id", [](Block &self) { return (uint64_t)&self; });
 
-  py::class_<Attribute>(m, "attribute", py::module_local());
-  py::class_<IntegerAttr, Attribute>(m, "integer_attr", py::module_local());
-  py::class_<BoolAttr, Attribute>(m, "bool_attr", py::module_local());
+  pybind11::class_<Attribute>(m, "attribute", pybind11::module_local());
+  pybind11::class_<IntegerAttr, Attribute>(m, "integer_attr", pybind11::module_local());
+  pybind11::class_<BoolAttr, Attribute>(m, "bool_attr", pybind11::module_local());
 
   // Ops
-  py::class_<OpState>(m, "OpState", py::module_local())
+  pybind11::class_<OpState>(m, "OpState", pybind11::module_local())
       .def("set_attr",
            [](OpState &self, std::string &name, Attribute &attr) -> void {
              self->setAttr(name, attr);
@@ -409,22 +408,22 @@ void init_triton_ir(py::module &&m) {
         return succeeded(verify(self.getOperation()));
       });
   // scf Ops
-  py::class_<scf::ForOp, OpState>(m, "ForOp", py::module_local())
+  pybind11::class_<scf::ForOp, OpState>(m, "ForOp", pybind11::module_local())
       .def("get_induction_var", &scf::ForOp::getInductionVar);
 
-  py::class_<scf::IfOp, OpState>(m, "IfOp", py::module_local())
+  pybind11::class_<scf::IfOp, OpState>(m, "IfOp", pybind11::module_local())
       .def("get_then_block", &scf::IfOp::thenBlock, ret::reference)
       .def("get_else_block", &scf::IfOp::elseBlock, ret::reference)
       .def("get_then_yield", &scf::IfOp::thenYield)
       .def("get_else_yield", &scf::IfOp::elseYield);
-  py::class_<scf::YieldOp, OpState>(m, "YieldOp", py::module_local());
-  py::class_<scf::WhileOp, OpState>(m, "WhileOp", py::module_local())
+  pybind11::class_<scf::YieldOp, OpState>(m, "YieldOp", pybind11::module_local());
+  pybind11::class_<scf::WhileOp, OpState>(m, "WhileOp", pybind11::module_local())
       .def("get_before", &scf::WhileOp::getBefore, ret::reference)
       .def("get_after", &scf::WhileOp::getAfter, ret::reference);
-  py::class_<scf::ConditionOp, OpState>(m, "ConditionOp", py::module_local());
+  pybind11::class_<scf::ConditionOp, OpState>(m, "ConditionOp", pybind11::module_local());
 
-  py::class_<Operation, std::unique_ptr<Operation, py::nodelete>>(
-      m, "operation", py::module_local())
+  pybind11::class_<Operation, std::unique_ptr<Operation, pybind11::nodelete>>(
+      m, "operation", pybind11::module_local())
       .def("get_name",
            [](Operation &self) {
              llvm::StringRef opName = self.getName().getStringRef();
@@ -438,31 +437,31 @@ void init_triton_ir(py::module &&m) {
       .def("get_region", &Operation::getRegion, ret::reference)
       .def("get_block", &Operation::getBlock, ret::reference)
       .def("get_str_attr",
-           [](Operation &self, const std::string &name) -> py::object {
+           [](Operation &self, const std::string &name) -> pybind11::object {
              auto ret = self.getAttrOfType<StringAttr>(name);
              if (!ret)
-               return py::none();
-             return py::str(ret.getValue().str());
+               return pybind11::none();
+             return pybind11::str(ret.getValue().str());
            })
       .def("get_bool_attr",
-           [](Operation &self, const std::string &name) -> py::object {
+           [](Operation &self, const std::string &name) -> pybind11::object {
              auto ret = self.getAttrOfType<BoolAttr>(name);
              if (!ret)
-               return py::none();
-             return py::bool_(ret.getValue());
+               return pybind11::none();
+             return pybind11::bool_(ret.getValue());
            })
       .def("get_flat_symbol_ref_attr",
-           [](Operation &self, const std::string &name) -> py::object {
+           [](Operation &self, const std::string &name) -> pybind11::object {
              auto ret = self.getAttrOfType<FlatSymbolRefAttr>(name);
              if (!ret)
-               return py::none();
-             return py::str(ret.getValue().str());
+               return pybind11::none();
+             return pybind11::str(ret.getValue().str());
            });
 
   // dynamic_attr is used to transfer ownership of the MLIR context to the
   // module
-  py::class_<ModuleOp, OpState>(m, "module", py::module_local(),
-                                py::dynamic_attr())
+  pybind11::class_<ModuleOp, OpState>(m, "module", pybind11::module_local(),
+                                pybind11::dynamic_attr())
       .def("dump", &ModuleOp::dump)
       .def("str",
            [](ModuleOp &self) -> std::string {
@@ -488,11 +487,11 @@ void init_triton_ir(py::module &&m) {
              return self.lookupSymbol<FuncOp>(funcName);
            })
       .def("get_int_attr",
-           [](ModuleOp &self, std::string name) -> py::object {
+           [](ModuleOp &self, std::string name) -> pybind11::object {
              auto ret = self->getAttrOfType<IntegerAttr>(name);
              if (!ret)
-               return py::none();
-             return py::int_(ret.getInt());
+               return pybind11::none();
+             return pybind11::int_(ret.getInt());
            })
       .def("create_location_snapshot",
            [](ModuleOp &self, const std::string &fileName) -> void {
@@ -524,7 +523,7 @@ void init_triton_ir(py::module &&m) {
       },
       ret::take_ownership);
 
-  py::class_<FuncOp, OpState>(m, "function", py::module_local())
+  pybind11::class_<FuncOp, OpState>(m, "function", pybind11::module_local())
       // .def_property_readonly("attrs", &ir::function::attrs)
       // .def("add_attr", &ir::function::add_attr);
       .def("args",
@@ -586,11 +585,11 @@ void init_triton_ir(py::module &&m) {
       .def_property_readonly("type", &FuncOp::getFunctionType)
       .def("reset_type", &FuncOp::setType);
 
-  py::class_<OpBuilder::InsertPoint>(m, "InsertPoint", py::module_local());
+  pybind11::class_<OpBuilder::InsertPoint>(m, "InsertPoint", pybind11::module_local());
 
-  py::class_<TritonOpBuilder>(m, "builder", py::module_local(),
-                              py::dynamic_attr())
-      .def(py::init<MLIRContext *>())
+  pybind11::class_<TritonOpBuilder>(m, "builder", pybind11::module_local(),
+                              pybind11::dynamic_attr())
+      .def(pybind11::init<MLIRContext *>())
       // getters
       .def("create_module",
            [](TritonOpBuilder &self) -> ModuleOp {
@@ -1476,10 +1475,10 @@ void init_triton_ir(py::module &&m) {
            [](TritonOpBuilder &self, std::vector<Value> operands, int axis)
                -> OpState { return self.create<ReduceOp>(operands, axis); })
       .def("create_reduce_ret",
-           [](TritonOpBuilder &self, py::args args) -> OpState {
+           [](TritonOpBuilder &self, pybind11::args args) -> OpState {
              llvm::SmallVector<Value> return_values;
              for (const auto &arg : args) {
-               return_values.push_back(py::cast<Value>(arg));
+               return_values.push_back(pybind11::cast<Value>(arg));
              }
              return self.create<ReduceReturnOp>(return_values);
            })
@@ -1489,10 +1488,10 @@ void init_triton_ir(py::module &&m) {
              return self.create<ScanOp>(operands, axis, reverse);
            })
       .def("create_scan_ret",
-           [](TritonOpBuilder &self, py::args args) -> OpState {
+           [](TritonOpBuilder &self, pybind11::args args) -> OpState {
              llvm::SmallVector<Value> return_values;
              for (const auto &arg : args) {
-               return_values.push_back(py::cast<Value>(arg));
+               return_values.push_back(pybind11::cast<Value>(arg));
              }
              return self.create<ScanReturnOp>(return_values);
            })
@@ -1576,8 +1575,8 @@ void init_triton_ir(py::module &&m) {
              return self.create<AdvanceOp>(ptr.getType(), ptr, offsets);
            });
 
-  py::class_<PassManager>(m, "pass_manager", py::module_local())
-      .def(py::init<MLIRContext *>())
+  pybind11::class_<PassManager>(m, "pass_manager", pybind11::module_local())
+      .def(pybind11::init<MLIRContext *>())
       .def("enable_debug",
            [](PassManager &self) {
              auto *context = self.getContext();
@@ -1675,7 +1674,7 @@ void init_triton_ir(py::module &&m) {
       });
 }
 
-void init_triton_env_vars(py::module &m) {
+void init_triton_env_vars(pybind11::module &m) {
   m.def("get_cache_invalidating_env_vars",
         []() -> std::map<std::string, std::string> {
           std::map<std::string, std::string> ret;
