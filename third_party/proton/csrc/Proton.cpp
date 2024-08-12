@@ -10,7 +10,7 @@
 
 using namespace proton;
 
-void initProton(pybind11::module &&m) {
+void initProton(torch::Library &&m) {
   using ret = pybind11::return_value_policy;
   using namespace pybind11::literals;
 
@@ -76,7 +76,7 @@ void initProton(pybind11::module &&m) {
   pybind11::bind_map<std::map<std::string, MetricValueType>>(m, "MetricMap");
 }
 
-PYBIND11_MODULE(libproton, m) {
+TORCH_LIBRARY(libproton, m) {
   m.doc() = "Python bindings to the Proton API";
   initProton(std::move(m.def_submodule("proton")));
 }

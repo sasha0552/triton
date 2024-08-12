@@ -32,7 +32,7 @@
 namespace {
 const char *const amdTargetTriple = "amdgcn-amd-amdhsa";
 
-void init_triton_amd_passes_ttgpuir(pybind11::module &&m) {
+void init_triton_amd_passes_ttgpuir(torch::Library &&m) {
   using namespace mlir::triton;
   m.def("add_to_llvmir",
         [](mlir::PassManager &pm, const std::string &arch, bool ftz) {
@@ -80,7 +80,7 @@ void addControlConstant(llvm::Module *module, const char *name,
 }
 } // namespace
 
-void init_triton_amd(pybind11::module &&m) {
+void init_triton_amd(torch::Library &&m) {
   m.doc() = "Python bindings to the AMD Triton backend";
 
   auto passes = m.def_submodule("passes");

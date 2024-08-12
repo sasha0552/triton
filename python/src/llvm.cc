@@ -146,7 +146,7 @@ std::string translateLLVMIRToASM(llvm::Module &module,
 
 using ret = pybind11::return_value_policy;
 
-void init_triton_llvm(pybind11::module &&m) {
+void init_triton_llvm(torch::Library &&m) {
 
   pybind11::class_<llvm::LLVMContext>(m, "context", pybind11::module_local())
       .def(pybind11::init<>());
@@ -439,7 +439,7 @@ void triton_stacktrace_signal_handler(void *) {
   raise(SIGABRT);
 }
 
-void init_triton_stacktrace_hook(pybind11::module &m) {
+void init_triton_stacktrace_hook(torch::Library &m) {
   if (mlir::triton::tools::getBoolEnv("TRITON_ENABLE_PYTHON_STACKTRACE")) {
     llvm::sys::AddSignalHandler(triton_stacktrace_signal_handler, nullptr);
   }

@@ -12,7 +12,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
-void init_triton_nvidia_passes_ttgpuir(pybind11::module &&m) {
+void init_triton_nvidia_passes_ttgpuir(torch::Library &&m) {
   using namespace mlir::triton;
   // TODO: it is weird to pass mlir::triton::NVVM here since the conversion is
   // nvidia-specificontext
@@ -24,7 +24,7 @@ void init_triton_nvidia_passes_ttgpuir(pybind11::module &&m) {
   });
 }
 
-void init_triton_nvidia_passes_ttnvgpuir(pybind11::module &&m) {
+void init_triton_nvidia_passes_ttnvgpuir(torch::Library &&m) {
   ADD_PASS_WRAPPER_1("add_plan_cta", mlir::createTritonNvidiaGPUPlanCTAPass,
                      mlir::triton::nvidia_gpu::ClusterInfo *);
   ADD_PASS_WRAPPER_0("add_fence_insertion",
@@ -35,7 +35,7 @@ void init_triton_nvidia_passes_ttnvgpuir(pybind11::module &&m) {
                      mlir::triton::createConvertNVGPUToLLVMPass);
 }
 
-void init_triton_nvidia(pybind11::module &&m) {
+void init_triton_nvidia(torch::Library &&m) {
   auto passes = m.def_submodule("passes");
   init_triton_nvidia_passes_ttgpuir(passes.def_submodule("ttgpuir"));
   init_triton_nvidia_passes_ttnvgpuir(passes.def_submodule("ttnvgpuir"));

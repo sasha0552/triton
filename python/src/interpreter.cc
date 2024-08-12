@@ -302,7 +302,7 @@ makeAtomicRMWOp(pybind11::dtype dtype, const uint64_t *ptr, const void *val,
 
 } // namespace
 
-void init_triton_interpreter(pybind11::module &&m) {
+void init_triton_interpreter(torch::Library &&m) {
   using ret = pybind11::return_value_policy;
 
   pybind11::enum_<MemSemantic>(m, "MEM_SEMANTIC", pybind11::module_local())

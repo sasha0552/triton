@@ -13,7 +13,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-void init_triton_analysis(pybind11::module &&m) {
+void init_triton_analysis(torch::Library &&m) {
   pybind11::class_<mlir::ModuleAllocation>(m, "allocation", pybind11::module_local())
       .def(pybind11::init<mlir::ModuleOp>());
   pybind11::class_<mlir::ModuleMembarAnalysis>(m, "membar", pybind11::module_local())
@@ -21,7 +21,7 @@ void init_triton_analysis(pybind11::module &&m) {
       .def("run", &mlir::ModuleMembarAnalysis::run);
 }
 
-void init_triton_passes_common(pybind11::module &&m) {
+void init_triton_passes_common(torch::Library &&m) {
   using namespace mlir;
   ADD_PASS_WRAPPER_0("add_sccp", createSCCPPass);
   ADD_PASS_WRAPPER_0("add_symbol_dce", createSymbolDCEPass);
@@ -31,7 +31,7 @@ void init_triton_passes_common(pybind11::module &&m) {
   ADD_PASS_WRAPPER_0("add_licm", createLoopInvariantCodeMotionPass);
 }
 
-void init_triton_passes_ttir(pybind11::module &&m) {
+void init_triton_passes_ttir(torch::Library &&m) {
   using namespace mlir::triton;
   ADD_PASS_WRAPPER_0("add_combine", createCombineOpsPass);
   ADD_PASS_WRAPPER_0("add_reorder_broadcast", createReorderBroadcastPass);
@@ -42,7 +42,7 @@ void init_triton_passes_ttir(pybind11::module &&m) {
                      int, int, int);
 }
 
-void init_triton_passes_ttgpuir(pybind11::module &&m) {
+void init_triton_passes_ttgpuir(torch::Library &&m) {
   using namespace mlir::triton::gpu;
   ADD_PASS_WRAPPER_0("add_coalesce", createTritonGPUCoalesce);
   ADD_PASS_WRAPPER_0("add_optimize_thread_locality",
@@ -65,7 +65,7 @@ void init_triton_passes_ttgpuir(pybind11::module &&m) {
                      createTritonGPUCombineTensorSelectAndIf);
 }
 
-void init_triton_passes_convert(pybind11::module &&m) {
+void init_triton_passes_convert(torch::Library &&m) {
   using namespace mlir;
   ADD_PASS_WRAPPER_0("add_scf_to_cf", createConvertSCFToCFPass);
   ADD_PASS_WRAPPER_0("add_cf_to_llvmir", createConvertControlFlowToLLVMPass);
@@ -73,12 +73,12 @@ void init_triton_passes_convert(pybind11::module &&m) {
   ADD_PASS_WRAPPER_0("add_arith_to_llvmir", createArithToLLVMConversionPass);
 }
 
-void init_triton_passes_llvmir(pybind11::module &&m) {
+void init_triton_passes_llvmir(torch::Library &&m) {
   using namespace mlir;
   ADD_PASS_WRAPPER_0("add_di_scope", createLLVMDIScopePass);
 }
 
-void init_triton_passes(pybind11::module &&m) {
+void init_triton_passes(torch::Library &&m) {
   init_triton_analysis(m.def_submodule("analysis"));
   init_triton_passes_common(m.def_submodule("common"));
   init_triton_passes_convert(m.def_submodule("convert"));

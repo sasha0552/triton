@@ -139,7 +139,7 @@ void outputWarning(Location loc, const std::string &msg) {
 /* Python bindings for ir                                                    */
 /*****************************************************************************/
 
-void init_triton_ir(pybind11::module &&m) {
+void init_triton_ir(torch::Library &&m) {
   using ret = pybind11::return_value_policy;
   using namespace pybind11::literals;
 
@@ -1674,7 +1674,7 @@ void init_triton_ir(pybind11::module &&m) {
       });
 }
 
-void init_triton_env_vars(pybind11::module &m) {
+void init_triton_env_vars(torch::Library &m) {
   m.def("get_cache_invalidating_env_vars",
         []() -> std::map<std::string, std::string> {
           std::map<std::string, std::string> ret;

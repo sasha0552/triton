@@ -29,16 +29,16 @@
 #define FOR_EACH_P(MACRO, ARGS_WITH_PARENS)                                    \
   FOR_EACH_P_INTERMEDIATE(MACRO, REMOVE_PARENS ARGS_WITH_PARENS)
 
-#define DECLARE_BACKEND(name) void init_triton_##name(pybind11::module &&m);
+#define DECLARE_BACKEND(name) void init_triton_##name(torch::Library &&m);
 
 #define INIT_BACKEND(name) init_triton_##name(m.def_submodule(#name));
 
-void init_triton_env_vars(pybind11::module &m);
-void init_triton_ir(pybind11::module &&m);
-void init_triton_llvm(pybind11::module &&m);
-void init_triton_interpreter(pybind11::module &&m);
-void init_triton_passes(pybind11::module &&m);
-void init_triton_stacktrace_hook(pybind11::module &m);
+void init_triton_env_vars(torch::Library &m);
+void init_triton_ir(torch::Library &&m);
+void init_triton_llvm(torch::Library &&m);
+void init_triton_interpreter(torch::Library &&m);
+void init_triton_passes(torch::Library &&m);
+void init_triton_stacktrace_hook(torch::Library &m);
 FOR_EACH_P(DECLARE_BACKEND, TRITON_BACKENDS_TUPLE)
 
 PYBIND11_MODULE(libtriton, m) {
